@@ -12,11 +12,7 @@ int countArchs(char* dir) {
 		exit(1);
 	}
 
-	while(!0){
-		entry = readdir(dirLogs);
-		if(!entry)
-			break;
-
+	while((entry=readdir(dirLogs))){
 		if(strcmp(entry->d_name,".") && strcmp(entry->d_name,".."))
 			count++;
 	}
@@ -24,7 +20,7 @@ int countArchs(char* dir) {
 	return count;
 }
 
-int countBikes(char* dir){
+int countBikes(char* dir, char** l){
 	char directory[50];
 	strcpy(directory, dir);
 	strcat(directory, "/");
@@ -42,7 +38,7 @@ int countBikes(char* dir){
 	int ok;
 	
 	char proxLog[80];
-	char* bike = malloc(sizeof(char));
+	char* bike = malloc(5 * sizeof(char));
 	
 	while((entry = readdir(dirLogs))){
 		strcpy(proxLog, directory);
@@ -52,30 +48,34 @@ int countBikes(char* dir){
 			arch = fopen(proxLog, "r");
 			if(!arch){
 				perror("Erro ao abrir arquivo de nome:\n");
-				printf("%s\n", entry->d_name);
 				exit (1);
 			}
 
 			fgets(bike, 80, arch);
 			ok = 1;
-			for(int i = 0; i < c; i++)
-				printf("%s%s\n%d\n", list[i], bike, c);
-			
-			printf("\n\n\n\n");
 			for(int i = 0; i < c; i++){
 				if(strcmp(list[i], bike)==0)
 					ok = 0;
 			}
 			if(ok){
+				if((c+1)%5==0)
+					list = realloc(list, (c+1) * sizeof(char*));
+				
 				strcpy(list[c], bike);
 				c++;
-				list = realloc(list, (c+1) * sizeof(char*));
 				list[c] = malloc(80 * sizeof(char));
 				strcpy(list[c], " ");
 			}
 		}
 	}
-
+	l = malloc(c * sizeof(char*));
+	for(int i = 0; i < c; i++){
+		l[i] = malloc(80 * sizeof(char));
+		l[i] = list[i];
+	}
+	l = list;
+	for(int i = 0; i < c; i++)
+		free(list[i]);
 	free(bike);
 	free(list);
 	return c;
@@ -84,6 +84,19 @@ int countBikes(char* dir){
 run_t* runAlloc(int files) {
 	run_t* runs = malloc(files * sizeof(run_t));
 	return runs;
+}
+
+int imprimaBikes(char** l, int tam){
+	for(int i = 0; i < tam; i++)
+		printf("%s\n", l[i]);
+	return 1;
+}
+
+void bikesFree(char** l, int tam){
+	for(int i = 0; i < tam; i++)
+		free(l[i]);
+	free(l);
+	return;
 }
 
 int runFree(run_t* runs){

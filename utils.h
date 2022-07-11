@@ -16,8 +16,10 @@ struct run {
 };
 typedef struct run run_t;
 
-int countBikes(char* dir);
+int countBikes(char* dir, char** l);
+int imprimaBikes(char** l, int tam);
 
+void bikesFree(char** l, int tam);
 run_t* runAlloc(int files);
 int runFree(run_t* runs);
 

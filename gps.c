@@ -7,6 +7,7 @@ int main(int argc, char **argv) {
 	char* dir;
 	int numBikes; 
 	run_t* runs;
+	char** listBikes = NULL;
 	
 	if((opt = getopt(argc, argv, "d:")) != -1){
 		switch(opt){
@@ -24,8 +25,11 @@ int main(int argc, char **argv) {
 	
 	runs = runAlloc(quantiaLogs);
 	
-	numBikes = countBikes(dir);
+	numBikes = countBikes(dir, listBikes);
 	printf("%d bikes encontradas\n", numBikes);
+	
+	imprimaBikes(listBikes, numBikes);
+	//bikesFree(listBikes, numBikes);
 	runFree(runs);
 	return 0;
 }
