@@ -20,14 +20,15 @@ int countArchs(char* dir) {
 	return count;
 }
 
-int countBikes(char* dir, char** l){
-	char directory[50];
-	strcpy(directory, dir);
-	strcat(directory, "/");
+run_t* runAlloc(int files) {
+	run_t* runs = malloc(files * sizeof(run_t));
+	return runs;
+}
 
-	char** list = malloc(40 * sizeof(char*));
-	list[0] = malloc(80 * sizeof(char));
-	strcpy(list[0], " ");
+char** countBikes(char* dir, int* tam){
+	char** l = malloc(sizeof(char*));
+	l[0] = malloc(80 * sizeof(char));
+	strcpy(l[0], "");
 	
 	DIR* dirLogs;
 	struct dirent* entry;
@@ -37,13 +38,13 @@ int countBikes(char* dir, char** l){
 	int c = 0;
 	int ok;
 	
-	char proxLog[80];
-	char* bike = malloc(5 * sizeof(char));
+	char* bike = malloc(80 * sizeof(char));
 	
 	while((entry = readdir(dirLogs))){
-		strcpy(proxLog, directory);
-		
 		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
+			char proxLog[80];
+			strcpy(proxLog, dir);
+			strcat(proxLog, "/");
 			strcat(proxLog, entry->d_name);
 			arch = fopen(proxLog, "r");
 			if(!arch){
@@ -54,41 +55,32 @@ int countBikes(char* dir, char** l){
 			fgets(bike, 80, arch);
 			ok = 1;
 			for(int i = 0; i < c; i++){
-				if(strcmp(list[i], bike)==0)
+				if(strcmp(l[i], bike)==0)
 					ok = 0;
 			}
 			if(ok){
-				if((c+1)%5==0)
-					list = realloc(list, (c+1) * sizeof(char*));
-				
-				strcpy(list[c], bike);
+				strcpy(l[c], bike);
 				c++;
-				list[c] = malloc(80 * sizeof(char));
-				strcpy(list[c], " ");
+				l = realloc(l, (c+1) * sizeof(char*));
+				l[c] = malloc(80 * sizeof(char));
+				strcpy(l[c], "");
 			}
+			fclose(arch);
 		}
 	}
-	l = malloc(c * sizeof(char*));
-	for(int i = 0; i < c; i++){
-		l[i] = malloc(80 * sizeof(char));
-		l[i] = list[i];
-	}
-	l = list;
-	for(int i = 0; i < c; i++)
-		free(list[i]);
+	*tam = c;
+	free(l[c]);
 	free(bike);
-	free(list);
-	return c;
-}
-
-run_t* runAlloc(int files) {
-	run_t* runs = malloc(files * sizeof(run_t));
-	return runs;
+	closedir(dirLogs);
+	return l;
 }
 
 int imprimaBikes(char** l, int tam){
-	for(int i = 0; i < tam; i++)
-		printf("%s\n", l[i]);
+	printf("\n\n");
+	for(int i = 0; i < tam; i++){
+		printf("%d - ", i);
+		printf("%s", l[i]);
+	}
 	return 1;
 }
 

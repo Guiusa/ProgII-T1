@@ -13,23 +13,25 @@ int main(int argc, char **argv) {
 		switch(opt){
 			case 'd':
 				printf("O programa está sendo executado...\n");
-				quantiaLogs = countArchs(optarg);
 				dir = optarg;
 				break;
 			default:
+				exit (1);
 				printf("Invalid option, please use\n./gps -d <directory_name>\n");
 		}		
 	}
 
+	quantiaLogs = countArchs(dir);
 	printf("A quantia de logs encontrados nesse diretório é %d\n", quantiaLogs);
 	
 	runs = runAlloc(quantiaLogs);
 	
-	numBikes = countBikes(dir, listBikes);
+	listBikes = countBikes(dir, &numBikes);
 	printf("%d bikes encontradas\n", numBikes);
 	
 	imprimaBikes(listBikes, numBikes);
-	//bikesFree(listBikes, numBikes);
+	
+	bikesFree(listBikes, numBikes);
 	runFree(runs);
 	return 0;
 }
