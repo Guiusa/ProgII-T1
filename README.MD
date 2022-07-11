@@ -1,0 +1,1 @@
+<h1>Using C to deal with strings e trully a nightmare</h1>
