@@ -25,6 +25,7 @@ int countArchs(char* dir) {
 run_t* runAlloc(int files) {
 	//aloca espaço para n(calculado em countArchs()) arquivos do tipo run_t*
 	run_t* runs = malloc(files * sizeof(run_t));
+	
 	return runs;
 }
 
@@ -34,7 +35,7 @@ char** countBikes(char* dir, int* tam){
 	//aloca o espaço para o vetor de strings para o nome das bikes com uma bike, tambḿe aloca espaço para a primeira string e
 	//coloca um valor qualquer nela
 	char** l = malloc(sizeof(char*));
-	l[0] = malloc(80 * sizeof(char));
+	l[0] = malloc(LINESIZE * sizeof(char));
 	strcpy(l[0], "");
 	
 	//structs padrão para diretório, entrada e arquivo
@@ -57,7 +58,7 @@ char** countBikes(char* dir, int* tam){
 		//ignorando as entradas dos diretórios . e ..
 		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
 			//proxLog está salvando o arquivo a se abrir na forma diretório/xxxxxxxxxxx.log
-			char proxLog[80];
+			char proxLog[LINESIZE];
 			strcpy(proxLog, dir);
 			strcat(proxLog, "/");
 			strcat(proxLog, entry->d_name);
@@ -69,7 +70,7 @@ char** countBikes(char* dir, int* tam){
 			}
 
 			//lê a primeira linha do arquivo, onde deve conter a icicleta daquele log
-			fgets(bike, 80, arch);
+			fgets(bike, LINESIZE, arch);
 			//por padrão, ok é true porque a bicicleta deve ser coloca no vetor, no laço for ele procura por uma bicicleta igual e se
 			//achar, ok recebe false
 			ok = 1;
@@ -83,7 +84,7 @@ char** countBikes(char* dir, int* tam){
 				strcpy(l[c], bike);
 				c++;
 				l = realloc(l, (c+1) * sizeof(char*));
-				l[c] = malloc(80 * sizeof(char));
+				l[c] = malloc(LINESIZE * sizeof(char));
 				strcpy(l[c], "");
 			}
 			fclose(arch);
@@ -99,7 +100,7 @@ char** countBikes(char* dir, int* tam){
 	
 	//esse laço tira a substring "Gear: " do nome de cada uma das bicicletas encontradas, faz isso deslocando todos os char 6 espaços para a esquerda
 	for(int i = 0; i < c; i++)
-		for(int j = 0; j < 80; j++)
+		for(int j = 0; j < LINESIZE; j++)
 			l[i][j] = l[i][j+6];
 	
 	return l;
@@ -128,8 +129,64 @@ void bikesFree(char** l, int tam){
 
 
 
-int runFree(run_t* runs){
+int runFree(run_t* runs, int tam){
 	//desaloca as estrututuras do tipo run_t
+	for(int i = 0; i < tam; i++){
+		free(runs[i].bike);
+	}
 	free(runs);
 	return 0;
+}
+
+
+
+int gerarLogs(run_t* runs, char* dir, int qLogs){
+	char proxLog[LINESIZE];
+	
+	DIR* dirLogs;
+	dirLogs = opendir(dir);
+	if(!dirLogs){
+		perror("Impossível abrir diretório");
+		exit (1);
+	}
+
+	FILE* arch;
+	struct dirent* entry;
+
+
+	char linha[LINESIZE];
+	for(int i = 0; i < qLogs; i++){
+		entry = readdir(dirLogs);
+		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
+			strcpy(proxLog, dir);
+			strcat(proxLog, "/");
+			strcat(proxLog, entry->d_name);
+			arch = fopen(proxLog, "r");
+
+			if(!arch){
+				perror("Impossível abrir arquivo log");
+				exit(1);
+			}
+			
+			int countLinhas = 0;
+			while(fgets(linha, LINESIZE, arch) != NULL){
+				if(countLinhas==0){
+					for(int j = 0; j < LINESIZE; j++)
+						linha[j] = linha[j+6];
+					runs[i].bike = malloc(LINESIZE * sizeof(char));
+					strcpy(runs[i].bike, linha);
+				}
+
+
+				countLinhas++;
+			}
+
+			fclose(arch);
+		}
+	}
+
+
+	closedir(dirLogs);
+
+	return 1;
 }

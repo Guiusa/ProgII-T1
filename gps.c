@@ -30,8 +30,13 @@ int main(int argc, char **argv) {
 	printf("%d bikes encontradas\n", numBikes);
 	
 	imprimaBikes(listBikes, numBikes);
-	
+
+	if(!gerarLogs(runs, dir, quantiaLogs)){
+		printf("Impossível processar arquivos\n");
+		return 1;
+	}
+
 	bikesFree(listBikes, numBikes);
-	runFree(runs);
+	runFree(runs, quantiaLogs);
 	return 0;
 }

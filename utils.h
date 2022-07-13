@@ -4,8 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
+#define LINESIZE 80
 
 struct run {
+	char* bike;
+	char* date;
+
 	int ttl_dist;
 	int avg_velo;
 	int max_velo;
@@ -22,8 +26,9 @@ int imprimaBikes(char** l, int tam);
 
 void bikesFree(char** l, int tam);
 run_t* runAlloc(int files);
-int runFree(run_t* runs);
+int runFree(run_t* runs, int tam);
 
 int countArchs(char* dir);
+int gerarLogs(run_t* runs, char* dir, int qLogs);
 
 #endif
