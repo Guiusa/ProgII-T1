@@ -18,11 +18,13 @@ struct run {
 	int max_cad;
 	int ttl_uph;
 };
+
 typedef struct run run_t;
 
 char** countBikes(char* dir, int* tam);
 
-int imprimaBikes(char** l, int tam);
+void imprimaBikes(char** l, int tam);
+void imprimaRuns(run_t* runs, int tam);
 
 void bikesFree(char** l, int tam);
 run_t* runAlloc(int files);

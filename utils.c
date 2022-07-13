@@ -25,6 +25,8 @@ int countArchs(char* dir) {
 run_t* runAlloc(int files) {
 	//aloca espaço para n(calculado em countArchs()) arquivos do tipo run_t*
 	run_t* runs = malloc(files * sizeof(run_t));
+	for(int i = 0; i < files; i++)
+		runs[i].bike = malloc(LINESIZE * sizeof(char));
 	
 	return runs;
 }
@@ -36,7 +38,6 @@ char** countBikes(char* dir, int* tam){
 	//coloca um valor qualquer nela
 	char** l = malloc(sizeof(char*));
 	l[0] = malloc(LINESIZE * sizeof(char));
-	strcpy(l[0], "");
 	
 	//structs padrão para diretório, entrada e arquivo
 	DIR* dirLogs;
@@ -52,7 +53,7 @@ char** countBikes(char* dir, int* tam){
 	int ok;
 	
 	//malloc temporário pra ler a primeira linha do arquivo e armazenar o "gear"
-	char* bike = malloc(80 * sizeof(char));
+	char* bike = malloc(LINESIZE * sizeof(char));
 	
 	while((entry = readdir(dirLogs))){
 		//ignorando as entradas dos diretórios . e ..
@@ -84,8 +85,8 @@ char** countBikes(char* dir, int* tam){
 				strcpy(l[c], bike);
 				c++;
 				l = realloc(l, (c+1) * sizeof(char*));
+				printf("333\n");
 				l[c] = malloc(LINESIZE * sizeof(char));
-				strcpy(l[c], "");
 			}
 			fclose(arch);
 		}
@@ -100,7 +101,7 @@ char** countBikes(char* dir, int* tam){
 	
 	//esse laço tira a substring "Gear: " do nome de cada uma das bicicletas encontradas, faz isso deslocando todos os char 6 espaços para a esquerda
 	for(int i = 0; i < c; i++)
-		for(int j = 0; j < LINESIZE; j++)
+		for(int j = 0; j < LINESIZE-6; j++)
 			l[i][j] = l[i][j+6];
 	
 	return l;
@@ -108,13 +109,33 @@ char** countBikes(char* dir, int* tam){
 
 
 
-int imprimaBikes(char** l, int tam){
+void imprimaBikes(char** l, int tam){
 	printf("\n\n");
 	for(int i = 0; i < tam; i++){
 		printf("%d - ", i);
 		printf("%s", l[i]);
 	}
-	return 1;
+}
+
+
+
+void imprimaRuns(run_t* runs, int tam){
+	printf("| data | bike |\n");
+	for(int i = 0; i < tam; i++){
+		// if(runs[i].date){
+		// 	printf("%s", runs[i].date);
+		// }
+		// else {
+		// 	printf("        ");
+		// }
+		
+		if(runs[i].bike){
+			printf("%s", runs[i].bike);
+		}	
+		else {
+			printf("        ");
+		}
+	}
 }
 
 
@@ -171,9 +192,8 @@ int gerarLogs(run_t* runs, char* dir, int qLogs){
 			int countLinhas = 0;
 			while(fgets(linha, LINESIZE, arch) != NULL){
 				if(countLinhas==0){
-					for(int j = 0; j < LINESIZE; j++)
+					for(int j = 0; j < LINESIZE-6; j++)
 						linha[j] = linha[j+6];
-					runs[i].bike = malloc(LINESIZE * sizeof(char));
 					strcpy(runs[i].bike, linha);
 				}
 

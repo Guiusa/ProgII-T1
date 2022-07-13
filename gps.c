@@ -36,6 +36,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	imprimaRuns(runs, quantiaLogs);
+
 	bikesFree(listBikes, numBikes);
 	runFree(runs, quantiaLogs);
 	return 0;
