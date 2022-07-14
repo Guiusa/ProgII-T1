@@ -169,7 +169,8 @@ int gerarLogs(run_t* runs, char* dir, int qLogs){
 
 
 	char linha[LINESIZE];
-	for(int i = 0; i < qLogs; i++){
+	int i = 0;
+	while(i < qLogs){
 		entry = readdir(dirLogs);
 		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
 			strcpy(proxLog, dir);
@@ -201,6 +202,7 @@ int gerarLogs(run_t* runs, char* dir, int qLogs){
 			}
 
 			fclose(arch);
+			i++;
 		}
 	}
 
