@@ -25,9 +25,10 @@ int countArchs(char* dir) {
 run_t* runAlloc(int files) {
 	//aloca espaço para n(calculado em countArchs()) arquivos do tipo run_t*
 	run_t* runs = malloc(files * sizeof(run_t));
-	for(int i = 0; i < files; i++)
+	for(int i = 0; i < files; i++){
 		runs[i].bike = malloc(LINESIZE * sizeof(char));
-	
+		runs[i].date = malloc(LINESIZE * sizeof(char));
+	}
 	return runs;
 }
 
@@ -85,7 +86,6 @@ char** countBikes(char* dir, int* tam){
 				strcpy(l[c], bike);
 				c++;
 				l = realloc(l, (c+1) * sizeof(char*));
-				printf("333\n");
 				l[c] = malloc(LINESIZE * sizeof(char));
 			}
 			fclose(arch);
@@ -122,19 +122,11 @@ void imprimaBikes(char** l, int tam){
 void imprimaRuns(run_t* runs, int tam){
 	printf("| data | bike |\n");
 	for(int i = 0; i < tam; i++){
-		// if(runs[i].date){
-		// 	printf("%s", runs[i].date);
-		// }
-		// else {
-		// 	printf("        ");
-		// }
+		printf("%s", runs[i].date);
 		
-		if(runs[i].bike){
-			printf("%s", runs[i].bike);
-		}	
-		else {
-			printf("        ");
-		}
+		printf("   |   ");
+
+		printf("%s", runs[i].bike);
 	}
 }
 
@@ -154,6 +146,7 @@ int runFree(run_t* runs, int tam){
 	//desaloca as estrututuras do tipo run_t
 	for(int i = 0; i < tam; i++){
 		free(runs[i].bike);
+		free(runs[i].date);
 	}
 	free(runs);
 	return 0;
@@ -194,9 +187,15 @@ int gerarLogs(run_t* runs, char* dir, int qLogs){
 				if(countLinhas==0){
 					for(int j = 0; j < LINESIZE-6; j++)
 						linha[j] = linha[j+6];
+					linha[LINESIZE-5] = '\0';
 					strcpy(runs[i].bike, linha);
 				}
-
+				else if(countLinhas==1){
+					for(int j = 0; j < 12; j++)
+						linha[j] = linha[j+6];
+					linha[12] = '\0';
+					strcpy(runs[i].date, linha);
+				}
 
 				countLinhas++;
 			}
