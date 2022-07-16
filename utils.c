@@ -191,11 +191,40 @@ int gerarLogs(run_t* runs, char* dir, int qLogs){
 					linha[LINESIZE-5] = '\0';
 					strcpy(runs[i].bike, linha);
 				}
+				
 				else if(countLinhas==1){
-					for(int j = 0; j < 12; j++)
-						linha[j] = linha[j+6];
+					if(linha[11] == ','){
+						runs[i].date[0] = '0';
+						runs[i].date[1] = linha[10];
+						runs[i].date[2] = '/';
+						for(int j = 0; j < 3; j++)
+							runs[i].date[3+j] = linha[6+j];
+						runs[i].date[6] = '/';
+						for(int j = 0; j < 4; j++)
+							runs[i].date[7+j] = linha[13+j];
+						linha[11] = '\0';
+					}
+
+					else{
+						runs[i].date[0] = linha[10];
+						runs[i].date[1] = linha[11];
+						runs[i].date[2] = '/';
+						for(int j = 0; j < 3; j++)
+							runs[i].date[3+j] = linha[6+j];
+						runs[i].date[6] = '/';
+						for(int j = 0; j < 4; j++)
+							runs[i].date[7+j] = linha[14+j];
+						linha[11] = '\0';
+					}
 					linha[12] = '\0';
-					strcpy(runs[i].date, linha);
+				}
+
+				else{
+					char* atributo;
+					char* valor;
+					atributo = strtok(linha, ":");
+					valor = strtok(NULL, ":");
+					printf("%s\n%s\n", atributo, valor);
 				}
 
 				countLinhas++;
