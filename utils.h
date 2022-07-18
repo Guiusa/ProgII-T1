@@ -10,13 +10,12 @@ struct run {
 	char* bike;
 	char* date;
 
-	int ttl_dist;
-	int avg_velo;
-	int max_velo;
-	int avg_hr;
-	int max_hr;
-	int max_cad;
-	int ttl_uph;
+	double ttl_dist;
+	double avg_velo;
+	double max_velo;
+	double avg_hr;
+	double max_hr;
+	double ttl_uph;
 };
 
 typedef struct run run_t;
@@ -24,13 +23,23 @@ typedef struct run run_t;
 char** countBikes(char* dir, int* tam);
 
 void imprimaBikes(char** l, int tam);
-void imprimaRuns(run_t* runs, int tam);
+void imprimaRun(run_t run);
+
+void ordenaDist(run_t* runs, int tam);
+void ordenaSubida(run_t* runs, int tam);
 
 void bikesFree(char** l, int tam);
 run_t* runAlloc(int files);
 int runFree(run_t* runs, int tam);
 
+void summary(run_t* runs, int tam);
+
+void histograma(run_t* runs, int tam, char* bike);
+
 int countArchs(char* dir);
 int gerarLogs(run_t* runs, char* dir, int qLogs);
+int separaAtributos(run_t* runs, char* atributo, double valor, int i, double* cadAux, double* avgHRAux, double* avgVeloAux);
+
+void imprimeRunsBikeX(char* bike, run_t* runs, int tam);
 
 #endif

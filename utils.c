@@ -73,6 +73,12 @@ char** countBikes(char* dir, int* tam){
 
 			//lê a primeira linha do arquivo, onde deve conter a icicleta daquele log
 			fgets(bike, LINESIZE, arch);
+			for(int i = 0; i<LINESIZE; i++){
+					if(bike[i] == '\n'){
+						bike[i] = '\0';
+						break;
+					}
+			}
 			//por padrão, ok é true porque a bicicleta deve ser coloca no vetor, no laço for ele procura por uma bicicleta igual e se
 			//achar, ok recebe false
 			ok = 1;
@@ -109,25 +115,259 @@ char** countBikes(char* dir, int* tam){
 
 
 
-void imprimaBikes(char** l, int tam){
-	printf("\n\n");
-	for(int i = 0; i < tam; i++){
-		printf("%d - ", i);
-		printf("%s", l[i]);
+void ordenaDist(run_t* runs, int tam){
+	run_t aux;
+
+	for(int i = 0; i < tam - 1; i++){
+		int menor = i;
+		for(int j = i + 1; j < tam; j++){
+			if(runs[j].ttl_dist < runs[menor].ttl_dist)
+				menor = j;
+		}
+		aux = runs[i];
+		runs[i] = runs[menor];
+		runs[menor] = aux;
+	}
+}
+
+
+void ordenaSubida(run_t* runs, int tam){
+	run_t aux;
+
+	for(int i = 0; i < tam - 1; i++){
+		int menor = i;
+		for(int j = i + 1; j < tam; j++){
+			if(runs[j].ttl_uph < runs[menor].ttl_uph)
+				menor = j;
+		}
+		aux = runs[i];
+		runs[i] = runs[menor];
+		runs[menor] = aux;
 	}
 }
 
 
 
-void imprimaRuns(run_t* runs, int tam){
-	printf("| data | bike |\n");
-	for(int i = 0; i < tam; i++){
-		printf("%s", runs[i].date);
-		
-		printf("   |   ");
 
-		printf("%s", runs[i].bike);
+void imprimaBikes(char** l, int tam){
+	printf("\n\n");
+	for(int i = 0; i < tam; i++){
+		printf("%d - ", i);
+		printf("%s\n", l[i]);
 	}
+}
+
+
+void imprimeRunsBikeX(char* bike, run_t* runs, int tam){
+	printf("| DATE | BIKE | DISTANCIA  | MAX VEL | MAX HR | TOTAL SUB | HR MÉDIA | VEL MÉDIA\n");
+	for(int i = 0; i < tam; i++){
+		if(!strcmp(bike, runs[i].bike)){
+			imprimaRun(runs[i]);
+		}
+	}
+}
+
+
+
+void summary(run_t* runs, int tam){
+	printf("\n\n SUMÁRIO FINAL:\n");
+	printf("Foram encontradas %d atividades\n", tam);
+	double maiorDist = 0;
+	double menorDist = 100000;
+	double somaDist = 0;
+	for(int i = 0; i<tam; i++){
+		if(runs[i].ttl_dist > maiorDist)
+			maiorDist = runs[i].ttl_dist;
+		if(runs[i].ttl_dist < menorDist)
+			menorDist = runs[i].ttl_dist;
+		somaDist += runs[i].ttl_dist;
+	}
+	printf("A maior atividade em distância foi de %.1fkm\n", maiorDist);
+	printf("A menor atividade em distância foi de %.1fkm\n", menorDist);
+	printf("O total percorrido em todas as atividades foi de %.1fkm\n", somaDist);
+	printf("A média de distância dentre as atividades foi de %.1fkm\n", somaDist/tam);
+}
+
+
+
+void histograma(run_t* runs, int tam, char* bike){
+	int v[11];
+	for(int i = 0; i<11; i++)
+		v[i] = 0;
+	for(int i = 0; i<tam; i++){
+		if(!strcmp(runs[i].bike, bike)){
+			int parcial = runs[i].ttl_dist-20;
+			v[abs(parcial/10)] += 1;
+		}
+	}
+	for(int i = 0; i<11; i++){
+		if(i < 8){
+			printf("  %d - %d |", 10*i+20, 10*i+29);
+		}
+		else{
+			printf("%d - %d |", 10*i+20, 10*i+29);
+		}
+		for(int j = 0; j<v[i]; j++)
+			printf("*");
+		printf("\n");
+	}
+
+}
+
+
+
+void imprimaRun(run_t run){
+		printf("%s", run.date);
+		printf(" | ");
+		printf("%s", run.bike);
+		printf(" | ");
+		printf("%.2f", run.ttl_dist);
+		printf(" | ");
+		printf("%.2f", run.max_velo);
+		printf(" | ");
+		printf("%.0f", run.max_hr);
+		printf(" | ");
+		printf("%.2f", run.ttl_uph);
+		printf(" | ");
+		printf("%.2f", run.avg_hr);
+		printf(" | ");
+		printf("%.2f", run.avg_velo);
+
+		printf("\n");
+}
+
+
+
+int separaAtributos(run_t* runs, char* atributo, double valor, int i, double* cadAux, double* avgHRAux, double* avgVeloAux){
+	if(!strcmp(atributo, "distance")){
+		runs[i].ttl_dist = valor/1000;
+	}
+	else if(!strcmp(atributo, "speed")){
+		runs[i].max_velo = (valor*3.6 > runs[i].max_velo) ? valor * 3.6 : runs[i].max_velo;
+		runs[i].avg_velo += valor*3.6;
+		*avgVeloAux+=1;
+	}
+	else if(!strcmp(atributo, "heart_rate")){
+		runs[i].max_hr = (valor > runs[i].max_hr) ? valor : runs[i].max_hr;
+		runs[i].avg_hr += valor;
+		*avgHRAux+=1;
+	}
+	else if(!strcmp(atributo, "altitude")){
+		if(*cadAux != -1)
+			runs[i].ttl_uph = (valor > *cadAux) ? runs[i].ttl_uph + (valor-*cadAux) : runs[i].ttl_uph;
+		*cadAux = valor;	
+	}
+	return 1;
+}
+
+
+
+int gerarLogs(run_t* runs, char* dir, int qLogs){
+	char proxLog[LINESIZE];
+	
+	DIR* dirLogs;
+	dirLogs = opendir(dir);
+	if(!dirLogs){
+		perror("Impossível abrir diretório");
+		exit (1);
+	}
+
+	FILE* arch;
+	struct dirent* entry;
+
+
+	char* linha = malloc(LINESIZE * sizeof(char));
+	int i = 0;
+	while(i < qLogs){
+
+		entry = readdir(dirLogs);
+		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
+			runs[i].max_velo = 0; 
+			runs[i].max_hr = 0;
+			runs[i].ttl_uph = 0;
+			runs[i].avg_velo = 0;
+			runs[i].avg_hr = 0;
+			double avgHRAux = 0;
+			double avgVeloAux = 0;
+			double cadAux = -1;
+			
+			
+			strcpy(proxLog, dir);
+			strcat(proxLog, "/");
+			strcat(proxLog, entry->d_name);
+			arch = fopen(proxLog, "r");
+
+			if(!arch){
+				perror("Impossível abrir arquivo log");
+				exit(1);
+			}
+			
+			int countLinhas = 0;
+			while(fgets(linha, LINESIZE, arch) != NULL){
+				if(countLinhas==0){
+					
+					for(int j = 0; j < LINESIZE-6; j++)
+						linha[j] = linha[j+6];
+					for(int k = 0; k < LINESIZE-6; k++){
+						if(linha[k] == '\n'){
+							linha[k] = '\0';
+							break;
+						}
+					}
+					strcpy(runs[i].bike, linha);
+				}
+				
+				else if(countLinhas==1){
+					if(linha[11] == ','){
+						runs[i].date[0] = '0';
+						runs[i].date[1] = linha[10];
+						runs[i].date[2] = '/';
+						for(int j = 0; j < 3; j++)
+							runs[i].date[3+j] = linha[6+j];
+						runs[i].date[6] = '/';
+						for(int j = 0; j < 4; j++)
+							runs[i].date[7+j] = linha[13+j];
+					}
+
+					else{
+						runs[i].date[0] = linha[10];
+						runs[i].date[1] = linha[11];
+						runs[i].date[2] = '/';
+						for(int j = 0; j < 3; j++)
+							runs[i].date[3+j] = linha[6+j];
+						runs[i].date[6] = '/';
+						for(int j = 0; j < 4; j++)
+							runs[i].date[7+j] = linha[14+j];
+					}
+					runs[i].date[11] = '\0';
+				}
+
+				else{
+					char* atributo;
+					char* valor;
+					double v1;
+					atributo = strtok(linha, ":");
+					valor = strtok(NULL, " :");
+					if(valor && atributo){
+						v1 = atof(valor);
+						separaAtributos(runs, atributo, v1, i, &cadAux, &avgHRAux, &avgVeloAux);
+					}			
+
+				}
+
+				countLinhas++;
+			}
+			runs[i].avg_hr = runs[i].avg_hr / avgHRAux;
+			runs[i].avg_velo = runs[i].avg_velo / avgVeloAux;
+			fclose(arch);
+			i++;
+		}
+	}
+	free(linha);
+
+	closedir(dirLogs);
+
+	return 1;
 }
 
 
@@ -150,93 +390,4 @@ int runFree(run_t* runs, int tam){
 	}
 	free(runs);
 	return 0;
-}
-
-
-
-int gerarLogs(run_t* runs, char* dir, int qLogs){
-	char proxLog[LINESIZE];
-	
-	DIR* dirLogs;
-	dirLogs = opendir(dir);
-	if(!dirLogs){
-		perror("Impossível abrir diretório");
-		exit (1);
-	}
-
-	FILE* arch;
-	struct dirent* entry;
-
-
-	char linha[LINESIZE];
-	int i = 0;
-	while(i < qLogs){
-		entry = readdir(dirLogs);
-		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
-			strcpy(proxLog, dir);
-			strcat(proxLog, "/");
-			strcat(proxLog, entry->d_name);
-			arch = fopen(proxLog, "r");
-
-			if(!arch){
-				perror("Impossível abrir arquivo log");
-				exit(1);
-			}
-			
-			int countLinhas = 0;
-			while(fgets(linha, LINESIZE, arch) != NULL){
-				if(countLinhas==0){
-					for(int j = 0; j < LINESIZE-6; j++)
-						linha[j] = linha[j+6];
-					linha[LINESIZE-5] = '\0';
-					strcpy(runs[i].bike, linha);
-				}
-				
-				else if(countLinhas==1){
-					if(linha[11] == ','){
-						runs[i].date[0] = '0';
-						runs[i].date[1] = linha[10];
-						runs[i].date[2] = '/';
-						for(int j = 0; j < 3; j++)
-							runs[i].date[3+j] = linha[6+j];
-						runs[i].date[6] = '/';
-						for(int j = 0; j < 4; j++)
-							runs[i].date[7+j] = linha[13+j];
-						linha[11] = '\0';
-					}
-
-					else{
-						runs[i].date[0] = linha[10];
-						runs[i].date[1] = linha[11];
-						runs[i].date[2] = '/';
-						for(int j = 0; j < 3; j++)
-							runs[i].date[3+j] = linha[6+j];
-						runs[i].date[6] = '/';
-						for(int j = 0; j < 4; j++)
-							runs[i].date[7+j] = linha[14+j];
-						linha[11] = '\0';
-					}
-					linha[12] = '\0';
-				}
-
-				else{
-					char* atributo;
-					char* valor;
-					atributo = strtok(linha, ":");
-					valor = strtok(NULL, ":");
-					printf("%s\n%s\n", atributo, valor);
-				}
-
-				countLinhas++;
-			}
-
-			fclose(arch);
-			i++;
-		}
-	}
-
-
-	closedir(dirLogs);
-
-	return 1;
 }
